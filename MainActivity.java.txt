@@ -1,0 +1,517 @@
+MainActivity.java
+
+package com.example.myapplication;
+
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.graphics.Color;
+import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.EditText;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
+import android.widget.Toast;
+import android.widget.Toolbar;
+
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+
+public class MainActivity extends AppCompatActivity {
+
+    private EditText editTextName, editTextAge, editTextAddress;
+    private RadioGroup radioGroupGender;
+    private CheckBox checkBoxOption1, checkBoxOption2, checkBoxOption3;
+
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        if (id == R.id.menu_change_color) {
+            // Change the background color to purple
+            View mainLayout = findViewById(R.id.main_layout);
+            mainLayout.setBackgroundColor(Color.parseColor("#800080")); // Hex color code for purple
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+
+        editTextName = findViewById(R.id.editTextName);
+        editTextAge = findViewById(R.id.editTextAge);
+        editTextAddress = findViewById(R.id.editTextAddress);
+        radioGroupGender = findViewById(R.id.radioGroupGender);
+        Button buttonSubmit = findViewById(R.id.buttonSubmit);
+        Button buttonDelete = findViewById(R.id.buttonDelete);
+        Button buttonUpdate = findViewById(R.id.buttonUpdate);
+        Button buttonView = findViewById(R.id.buttonView);
+        checkBoxOption1 = findViewById(R.id.checkBoxOption1);
+        checkBoxOption2 = findViewById(R.id.checkBoxOption2);
+        checkBoxOption3 = findViewById(R.id.checkBoxOption3);
+
+
+
+
+
+        buttonSubmit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Retrieve the entered details
+                String name = editTextName.getText().toString();
+                String age = editTextAge.getText().toString();
+                String address = editTextAddress.getText().toString();
+                String gender = ((RadioButton) findViewById(radioGroupGender.getCheckedRadioButtonId())).getText().toString();
+                StringBuilder selectedOptions = new StringBuilder();
+                if (checkBoxOption1.isChecked()) {
+                    selectedOptions.append("Option 1, ");
+                }
+                if (checkBoxOption2.isChecked()) {
+                    selectedOptions.append("Option 2, ");
+                }
+                if (checkBoxOption3.isChecked()) {
+                    selectedOptions.append("Option 3, ");
+                }
+
+                // Remove the trailing comma and whitespace
+                if (selectedOptions.length() > 0) {
+                    selectedOptions.delete(selectedOptions.length() - 2, selectedOptions.length());
+                }
+
+                // Create an instance of the DatabaseHelper class
+                DatabaseHelper databaseHelper = new DatabaseHelper(MainActivity.this);
+
+                // Insert the details into the database
+                boolean isInserted = databaseHelper.insertDetails(name, age, gender, address);
+                if (isInserted) {
+                    Toast.makeText(MainActivity.this, "Details inserted successfully", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(MainActivity.this, "Failed to insert details", Toast.LENGTH_SHORT).show();
+                }
+
+                // Create an intent to start the DetailsActivity and pass the details
+                Intent intent = new Intent(MainActivity.this, DetailsActivity.class);
+                intent.putExtra("name", name);
+                intent.putExtra("age", age);
+                intent.putExtra("address", address);
+                intent.putExtra("gender", gender);
+                intent.putExtra("options", selectedOptions.toString());
+                startActivity(intent);
+            }
+        });
+        buttonDelete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String name = editTextName.getText().toString();
+                DatabaseHelper databaseHelper = new DatabaseHelper(MainActivity.this);
+
+                // Delete the details from the database
+                boolean isDeleted = databaseHelper.deleteDetails(name);
+
+                if (isDeleted) {
+                    Toast.makeText(MainActivity.this, "Details deleted successfully", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(MainActivity.this, "Failed to delete details", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        buttonUpdate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String name = editTextName.getText().toString();
+                String age = editTextAge.getText().toString();
+                String address = editTextAddress.getText().toString();
+                String gender = ((RadioButton) findViewById(radioGroupGender.getCheckedRadioButtonId())).getText().toString();
+                StringBuilder selectedOptions = new StringBuilder();
+                if (checkBoxOption1.isChecked()) {
+                    selectedOptions.append("Option 1, ");
+                }
+                if (checkBoxOption2.isChecked()) {
+                    selectedOptions.append("Option 2, ");
+                }
+                if (checkBoxOption3.isChecked()) {
+                    selectedOptions.append("Option 3, ");
+                }
+
+                // Remove the trailing comma and whitespace
+                if (selectedOptions.length() > 0) {
+                    selectedOptions.delete(selectedOptions.length() - 2, selectedOptions.length());
+                }
+
+
+                DatabaseHelper databaseHelper = new DatabaseHelper(MainActivity.this);
+
+                // Update the details in the database
+                boolean isUpdated = databaseHelper.updateDetails(name, age, gender, address);
+
+                if (isUpdated) {
+                    Toast.makeText(MainActivity.this, "Details updated successfully", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(MainActivity.this, "Failed to update details", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        buttonView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, DetailsActivity.class);
+                startActivity(intent);
+            }
+        });
+
+
+        Button buttonExit = findViewById(R.id.buttonExit);
+        buttonExit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showExitDialog();
+            }
+        });
+    }
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main_menu, menu);
+        return true;
+    }
+
+
+
+    private void showExitDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("Are you sure you want to exit?")
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        // Exit the app
+                        finish();
+                    }
+                })
+                .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        // User canceled the dialog, do nothing
+                    }
+                });
+        builder.create().show();
+    }
+}
+
+activity_main.xml
+<!-- activity_main.xml -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    tools:context=".MainActivity">
+
+
+    <EditText
+        android:id="@+id/editTextName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Name" />
+
+    <EditText
+        android:id="@+id/editTextAge"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Age" />
+
+    <RadioGroup
+        android:id="@+id/radioGroupGender"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <RadioButton
+            android:id="@+id/radioButtonMale"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Male" />
+
+        <RadioButton
+            android:id="@+id/radioButtonFemale"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Female" />
+    </RadioGroup>
+
+    <EditText
+        android:id="@+id/editTextAddress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Address" />
+    <CheckBox
+        android:id="@+id/checkBoxOption1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Option 1" />
+
+    <CheckBox
+        android:id="@+id/checkBoxOption2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Option 2" />
+
+    <CheckBox
+        android:id="@+id/checkBoxOption3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Option 3" />
+
+
+    <Button
+        android:id="@+id/buttonSubmit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Submit" />
+
+    <Button
+        android:id="@+id/buttonDelete"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Delete" />
+
+    <Button
+        android:id="@+id/buttonUpdate"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Update" />
+
+    <Button
+        android:id="@+id/buttonView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="View Details" />
+
+    <Button
+        android:id="@+id/buttonExit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Exit" />
+
+</LinearLayout>
+
+
+
+
+
+DetailsActivity.java
+package com.example.myapplication;
+import android.content.Intent;
+import android.os.Bundle;
+import android.telecom.Call;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import java.util.List;
+
+public class DetailsActivity extends AppCompatActivity {
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_details);
+        TextView textViewName = findViewById(R.id.textViewName);
+        TextView textViewAge = findViewById(R.id.textViewAge);
+        TextView textViewGender = findViewById(R.id.textViewGender);
+        TextView textViewAddress = findViewById(R.id.textViewAddress);
+        TextView textViewOptions = findViewById(R.id.textViewOptions);
+        Button buttonBack = findViewById(R.id.buttonBack);
+
+        Intent intent = getIntent();
+        if (intent != null) {
+            String name = intent.getStringExtra("name");
+            String age = intent.getStringExtra("age");
+            String gender = intent.getStringExtra("gender");
+            String address = intent.getStringExtra("address");
+            String options = intent.getStringExtra("options");
+
+
+            textViewName.setText("Name: " + name);
+            textViewAge.setText("Age: " + age);
+            textViewGender.setText("Gender: " + gender);
+            textViewAddress.setText("Address: " + address);
+            textViewOptions.setText("Options: " + options);
+        }
+
+        buttonBack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Go back to the MainActivity
+                finish();
+            }
+
+        });
+    }
+
+}
+
+activity_details.xml
+<!-- activity_details.xml -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center">
+
+    <TextView
+        android:id="@+id/textViewName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:id="@+id/textViewAge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:id="@+id/textViewGender"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:id="@+id/textViewAddress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+    <TextView
+        android:id="@+id/textViewOptions"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <Button
+        android:id="@+id/buttonBack"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Back" />
+
+</LinearLayout>
+
+DatabaseHelper.java
+package com.example.myapplication;
+
+import android.content.ContentValues;
+import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+
+public class DatabaseHelper extends SQLiteOpenHelper {
+
+    private static final String DATABASE_NAME = "details.db";
+    private static final int DATABASE_VERSION = 1;
+
+    private static final String TABLE_NAME = "user_details";
+    private static final String COLUMN_NAME = "name";
+    private static final String COLUMN_AGE = "age";
+    private static final String COLUMN_GENDER = "gender";
+    private static final String COLUMN_ADDRESS = "address";
+
+    public DatabaseHelper(Context context) {
+        super(context, DATABASE_NAME, null, DATABASE_VERSION);
+    }
+
+    @Override
+    public void onCreate(SQLiteDatabase db) {
+        String createTableQuery = "CREATE TABLE " + TABLE_NAME + " (" +
+                COLUMN_NAME + " TEXT, " +
+                COLUMN_AGE + " TEXT, " +
+                COLUMN_GENDER + " TEXT, " +
+                COLUMN_ADDRESS + " TEXT)";
+        db.execSQL(createTableQuery);
+    }
+
+    @Override
+    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
+        onCreate(db);
+    }
+
+    public boolean insertDetails(String name, String age, String gender, String address) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(COLUMN_NAME, name);
+        contentValues.put(COLUMN_AGE, age);
+        contentValues.put(COLUMN_GENDER, gender);
+        contentValues.put(COLUMN_ADDRESS, address);
+        long result = db.insert(TABLE_NAME, null, contentValues);
+        return result != -1;
+    }
+    public boolean deleteDetails(String name) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        String whereClause = COLUMN_NAME + "=?";
+        String[] whereArgs = {name};
+        int result = db.delete(TABLE_NAME, whereClause, whereArgs);
+        return result > 0;
+    }
+
+    public boolean updateDetails(String name, String age, String gender, String address) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(COLUMN_AGE, age);
+        contentValues.put(COLUMN_GENDER, gender);
+        contentValues.put(COLUMN_ADDRESS, address);
+        String whereClause = COLUMN_NAME + "=?";
+        String[] whereArgs = {name};
+        int result = db.update(TABLE_NAME, contentValues, whereClause, whereArgs);
+        return result > 0;
+    }
+
+    public Cursor getAllDetails() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String[] columns = {COLUMN_NAME, COLUMN_AGE, COLUMN_GENDER, COLUMN_ADDRESS};
+        return db.query(TABLE_NAME, columns, null, null, null, null, null);
+    }
+}
+
+main_menu.xml
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/menu_change_color"
+        android:title="Change Background Color" />
+</menu>
+
+AndroidManifest.xml
+<?xml version="1.0" encoding="utf-8"?>
+<!--suppress ALL -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <application
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.MyApplication"
+        tools:targetApi="31">
+        <activity android:name=".DetailsActivity" />
+
+        <activity
+            android:name=".MainActivity"
+
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>
