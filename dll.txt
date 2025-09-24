@@ -1,0 +1,100 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include "dll.h"
+
+List *dll_new(){
+	List *list =(List*)malloc(sizeof(List));
+	list->head=NULL;
+	list->tail=NULL;
+	list->length = 0;
+	return list; 
+}
+static Node *_dll_new_node(int32_t data){
+	Node *node = (Node *)malloc(sizeof(Node));
+	node->data=data;
+	node->next=NULL;
+	node->prev=NULL;
+	return node;
+}
+List *dll_add_head(List *list, int32_t data){
+	Node *node_to_add = _dll_new_node(data);
+	node_to_add->next = list->head;
+	if(list->head!=NULL){
+		list->head->prev = node_to_add;
+	}
+	list->head = node_to_add;
+	if(list->tail==NULL){
+		list->tail = node_to_add;
+	}
+	++list->length;
+	return list;
+}
+List *dll_add_tail(List *list, int32_t data){
+	Node *node_to_add = _dll_new_node(data);
+	node_to_add->prev = list->tail;
+	if(list->tail!=NULL){
+		list->tail->next = node_to_add;
+	}
+	list->tail = node_to_add;
+	if(list->head==NULL){
+		list->head = node_to_add;
+	}
+	++list->length;
+	return list;
+}
+
+List *dll_delete_head(List *list){
+	if(list->head==NULL){
+		printf("Nothing to delete/List is empty");
+		return list;
+	}
+	Node *node_to_delete = list->head;
+	list->head = list->head->next;
+	if(list->head!=NULL){
+		list->head->prev = NULL;
+	}else{
+		list->tail=NULL;
+	}
+	free(node_to_delete);
+	--list->length;
+	return list;
+}
+
+List *dll_delete_tail(List *list){
+	if(list->tail ==NULL){
+		printf("Nothing to delete/List empty");
+		return list;
+	}
+	Node *node_to_delete = list->tail;
+	list->tail = list->tail->prev;
+	if(list->tail!=NULL){
+		list->tail->next = NULL;
+	}else{
+		list->head = NULL;
+	}
+	free(node_to_delete);
+	--list->length;
+	return list;
+}
+
+
+void display_list(List *list){
+	printf("List (length %u ) HEAD -> ",list->length);
+	Node *current = list->head;
+	while(current!=NULL){
+		printf("%d <-> ",current->data);
+		current = current->next;
+	}
+	printf("NULL\n");
+}
+void dll_free(List *list) {
+    Node *current = list->head;
+    while (current != NULL) {
+        Node *node_to_free = current;
+        current = current->next;
+        free(node_to_free);
+    }
+    free(list);
+}
+
+
